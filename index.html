@@ -998,7 +998,12 @@
       saveState();
 
     } catch (err) {
-      setStatus('error', 'Offline — enter conditions manually');
+      console.error('fetchWeather error:', err);
+      if (!navigator.onLine) {
+        setStatus('error', 'No internet — enter conditions manually');
+      } else {
+        setStatus('error', 'Fetch failed (' + err.message + ') — enter manually');
+      }
     } finally {
       dom.autofill.disabled    = false;
       dom.autofill.textContent = 'Auto-Fill';
