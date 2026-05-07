@@ -32,6 +32,7 @@ self.addEventListener('fetch', event => {
 
   // API calls always go to network — never cache live weather
   if (url.hostname === 'aviationweather.gov') return;
+  if (url.hostname === '182q-proxy.seanseymour18.workers.dev') return;
 
   event.respondWith(
     caches.match(event.request).then(cached => {

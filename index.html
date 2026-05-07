@@ -551,6 +551,10 @@
   // Aircraft: Continental O-470, 230 HP, 2950 lbs MTOW
   // * Values marked with [e] are extrapolated beyond the printed POH chart
 
+  // Set to your Cloudflare Worker URL after deploying proxy-worker.js
+  // e.g. 'https://182q-proxy.YOUR-SUBDOMAIN.workers.dev'
+  const PROXY = 'https://182q-proxy.seanseymour18.workers.dev';
+
   const TABLES = {
     // Figure 5-4 — Takeoff Distance, Short Field
     // Flaps 20°, 2400 RPM & Full Throttle prior to brake release
@@ -958,8 +962,8 @@
 
     try {
       const [metarRes, aptRes] = await Promise.all([
-        fetch('https://aviationweather.gov/api/data/metar?ids=' + id + '&format=json&hours=2'),
-        fetch('https://aviationweather.gov/api/data/airport?ids=' + id + '&format=json')
+        fetch(PROXY + '/metar?ids=' + id),
+        fetch(PROXY + '/airport?ids=' + id)
       ]);
 
       let metarData = [], aptData = [];
