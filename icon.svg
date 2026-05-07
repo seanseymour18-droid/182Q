@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <circle cx="96" cy="96" r="96" fill="#1a1a2e"/>
+  <g fill="#f59e0b">
+    <!-- Fuselage -->
+    <ellipse cx="96" cy="96" rx="8" ry="54"/>
+    <!-- Wings (high-wing planform from above) -->
+    <path d="M96,80 L22,100 L22,90 L96,72 L170,90 L170,100 Z"/>
+    <!-- Horizontal stabilizer -->
+    <path d="M96,138 L62,150 L62,143 L96,132 L130,143 L130,150 Z"/>
+    <!-- Nose spinner -->
+    <circle cx="96" cy="45" r="5"/>
+  </g>
+</svg>

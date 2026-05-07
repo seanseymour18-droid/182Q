@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="182 Perf">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <title>C182 Performance</title>
+  <style>
+    /* ── DESIGN TOKENS ─────────────────────────────────────────── */
+    :root {
+      --bg:       #0d0d1a;
+      --card:     #1a1a2e;
+      --input-bg: #16213e;
+      --border:   #2d2d5e;
+      --accent:   #f59e0b;
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --green:    #22c55e;
+      --yellow:   #eab308;
+      --red:      #ef4444;
+      --radius:   8px;
+    }
+
+    /* ── RESET ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      min-height: 100dvh;
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* ── HEADER ────────────────────────────────────────────────── */
+    header {
+      background: var(--card);
+      border-bottom: 2px solid var(--accent);
+      padding: 12px 16px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+    }
+
+    header p {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 2px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── LAYOUT ────────────────────────────────────────────────── */
+    main {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── CARDS ─────────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 8px 14px;
+      background: rgba(245,158,11,0.08);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h2 {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+    }
+
+    .card-body { padding: 14px; }
+
+    /* ── FORM ──────────────────────────────────────────────────── */
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field > label, label.field-label {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      margin-bottom: 5px;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      display: block;
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+      padding: 9px 11px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus   { border-color: var(--accent); }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── GRID ROWS ─────────────────────────────────────────────── */
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* ── ICAO ROW ──────────────────────────────────────────────── */
+    .icao-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .icao-row .field { flex: 1; margin-bottom: 0; }
+
+    #icao {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+    }
+
+    /* ── BUTTONS ───────────────────────────────────────────────── */
+    .btn-primary {
+      background: var(--accent);
+      color: #0d0d1a;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 9px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      letter-spacing: 0.03em;
+      transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .btn-primary:active  { opacity: 0.72; }
+    .btn-primary:disabled { opacity: 0.4; cursor: wait; }
+
+    .btn-unit {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--accent);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 9px 12px;
+      cursor: pointer;
+      min-width: 48px;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .btn-unit:active { border-color: var(--accent); background: rgba(245,158,11,0.1); }
+
+    /* ── STATUS ────────────────────────────────────────────────── */
+    .status {
+      font-size: 0.7rem;
+      color: var(--muted);
+      min-height: 18px;
+      margin-top: 6px;
+      padding-left: 2px;
+    }
+
+    .status.loading { color: var(--accent); }
+    .status.success { color: var(--green); }
+    .status.error   { color: var(--red); }
+
+    /* ── TEMP ROW ──────────────────────────────────────────────── */
+    .temp-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .temp-row input { flex: 1; }
+
+    /* ── DIVIDER ───────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+
+    /* ── HEADWIND ──────────────────────────────────────────────── */
+    .hw-area {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .hw-display {
+      font-size: 0.95rem;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .hw-display.hw-head  { color: var(--green); font-weight: 600; }
+    .hw-display.hw-calm  { color: var(--muted); }
+    .hw-display.hw-tail  { color: var(--red);   font-weight: 600; }
+
+    .override-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .override-label input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+
+    .hw-manual-row {
+      display: none;
+      margin-top: 6px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .hw-manual-row.visible { display: flex; }
+    .hw-manual-row input   { flex: 1; }
+
+    .hw-hint {
+      font-size: 0.66rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── RESULT SECTIONS ───────────────────────────────────────── */
+    .result-section {
+      font-size: 0.63rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      padding: 7px 14px 4px;
+      background: rgba(45,45,94,0.35);
+      border-top: 1px solid var(--border);
+    }
+
+    .result-section:first-child { border-top: none; }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-item:last-child { border-bottom: none; }
+
+    .result-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .result-right {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .result-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace, -apple-system;
+      color: var(--text);
+      transition: color 0.2s;
+      min-width: 4ch;
+      text-align: right;
+    }
+
+    .result-value.green  { color: var(--green); }
+    .result-value.yellow { color: var(--yellow); }
+    .result-value.red    { color: var(--red); }
+
+    .result-unit {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    /* ── DISCLAIMER ────────────────────────────────────────────── */
+    .disclaimer {
+      font-size: 0.63rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+      padding: 0 8px 8px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#9992;&nbsp; C182 Performance</h1>
+  <p>182Q (1977) &bull; Continental O-470 &bull; 2950 lbs MTOW</p>
+</header>
+
+<main>
+
+  <!-- ── INPUT CARD ────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header"><h2>Conditions</h2></div>
+    <div class="card-body">
+
+      <!-- ICAO + Auto-Fill -->
+      <div class="field">
+        <label class="field-label">Airport ICAO Code</label>
+        <div class="icao-row">
+          <div class="field">
+            <input type="text" id="icao" maxlength="4" placeholder="KBVN"
+                   autocomplete="off" autocorrect="off" autocapitalize="characters"
+                   spellcheck="false" inputmode="text">
+          </div>
+          <button class="btn-primary" id="autofill" type="button">Auto-Fill</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Elevation + Altimeter -->
+      <div class="row-2">
+        <div class="field">
+          <label for="elevation">Elevation (ft)</label>
+          <input type="number" id="elevation" value="0"
+                 min="-1500" max="14500" step="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="altimeter">Altimeter (inHg)</label>
+          <input type="number" id="altimeter" value="29.92"
+                 min="26.00" max="31.50" step="0.01" inputmode="decimal">
+        </div>
+      </div>
+
+      <!-- Temperature with unit toggle -->
+      <div class="field">
+        <label class="field-label">Outside Air Temp</label>
+        <div class="temp-row">
+          <input type="number" id="oat" value="15" step="0.5" inputmode="decimal">
+          <button class="btn-unit" id="tempToggle" type="button">°C</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Wind Direction + Speed -->
+      <div class="row-2">
+        <div class="field">
+          <label for="windDir">Wind Dir (°M)</label>
+          <input type="number" id="windDir" value="0"
+                 min="0" max="360" step="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="windSpeed">Wind Speed (kts)</label>
+          <input type="number" id="windSpeed" value="0"
+                 min="0" max="99" step="1" inputmode="numeric">
+        </div>
+      </div>
+
+      <!-- Runway Heading -->
+      <div class="field">
+        <label for="runway">Runway Heading (°M)</label>
+        <input type="number" id="runway" value="0"
+               min="0" max="360" step="1" inputmode="numeric">
+      </div>
+
+      <!-- Headwind Component -->
+      <div class="field">
+        <label class="field-label">Headwind Component</label>
+        <div class="hw-area">
+          <span class="hw-display hw-calm" id="hwDisplay">— kts</span>
+          <label class="override-label">
+            <input type="checkbox" id="hwOverride">
+            Manual
+          </label>
+        </div>
+        <div class="hw-manual-row" id="hwManualRow">
+          <input type="number" id="hwManual" value="0" step="1"
+                 inputmode="decimal" placeholder="0" disabled>
+          <span class="hw-hint">kts &nbsp;(+ head &nbsp;/&nbsp; − tail)</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Aircraft Weight -->
+      <div class="field">
+        <label for="weight">Aircraft Weight (lbs)</label>
+        <input type="number" id="weight" value="2950"
+               min="1700" max="2950" step="10" inputmode="numeric">
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── RESULTS CARD ──────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header"><h2>Performance</h2></div>
+
+    <div class="result-section">Altitude</div>
+    <div class="result-item">
+      <span class="result-label">Pressure Altitude</span>
+      <div class="result-right">
+        <span class="result-value" id="rPA">—</span>
+        <span class="result-unit">ft</span>
+      </div>
+    </div>
+    <div class="result-item">
+      <span class="result-label">Density Altitude</span>
+      <div class="result-right">
+        <span class="result-value" id="rDA">—</span>
+        <span class="result-unit">ft</span>
+      </div>
+    </div>
+
+    <div class="result-section">Takeoff — Short Field, Flaps 20°, Paved Level Dry</div>
+    <div class="result-item">
+      <span class="result-label">Ground Roll</span>
+      <div class="result-right">
+        <span class="result-value" id="rToRoll">—</span>
+        <span class="result-unit">ft</span>
+      </div>
+    </div>
+    <div class="result-item">
+      <span class="result-label">Clear 50 ft Obstacle</span>
+      <div class="result-right">
+        <span class="result-value" id="rToObst">—</span>
+        <span class="result-unit">ft</span>
+      </div>
+    </div>
+
+    <div class="result-section">Climb — Flaps Up, Full Power</div>
+    <div class="result-item">
+      <span class="result-label">Best Rate of Climb (Vy)</span>
+      <div class="result-right">
+        <span class="result-value" id="rROC">—</span>
+        <span class="result-unit">fpm</span>
+      </div>
+    </div>
+
+    <div class="result-section">Landing — Flaps 40°, Max Braking</div>
+    <div class="result-item">
+      <span class="result-label">Ground Roll</span>
+      <div class="result-right">
+        <span class="result-value" id="rLdRoll">—</span>
+        <span class="result-unit">ft</span>
+      </div>
+    </div>
+    <div class="result-item">
+      <span class="result-label">Clear 50 ft Obstacle</span>
+      <div class="result-right">
+        <span class="result-value" id="rLdObst">—</span>
+        <span class="result-unit">ft</span>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="disclaimer">
+    1977 Cessna 182Q POH (Figs 5-4, 5-5, 5-10) &bull; For flight planning reference only<br>
+    Always verify against your aircraft's actual Pilot Operating Handbook
+  </p>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── STATE ──────────────────────────────────────────────────────
+  const state = {
+    icao:             '',
+    elevation:        0,
+    altimeter:        29.92,
+    oat_c:            15,
+    tempUnit:         'C',
+    windDir:          0,
+    windSpeed:        0,
+    runwayHeading:    0,
+    headwindOverride: false,
+    headwindManual:   0,
+    weight:           2950
+  };
+
+  // ── PERFORMANCE TABLES ─────────────────────────────────────────
+  // Source: 1977 Cessna 182Q Pilot's Operating Handbook
+  // Aircraft: Continental O-470, 230 HP, 2950 lbs MTOW
+  // * Values marked with [e] are extrapolated beyond the printed POH chart
+
+  const TABLES = {
+    // Figure 5-4 — Takeoff Distance, Short Field
+    // Flaps 20°, 2400 RPM & Full Throttle prior to brake release
+    // Paved, Level, Dry Runway, Zero Wind, 2950 lbs
+    takeoffRoll: {
+      pa:   [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000],
+      temp: [0, 10, 20, 30, 40],
+      data: [
+        [635,  680,  730,  780,  835],   // S.L.
+        [690,  745,  795,  850,  910],   // 1000 ft
+        [755,  810,  870,  930,  995],   // 2000 ft
+        [825,  890,  950,  1020, 1090],  // 3000 ft
+        [905,  970,  1045, 1120, 1195],  // 4000 ft
+        [995,  1065, 1145, 1230, 1315],  // 5000 ft
+        [1090, 1175, 1260, 1350, 1450],  // 6000 ft
+        [1200, 1290, 1390, 1490, 1585],  // 7000 ft (40°C [e])
+        [1325, 1425, 1530, 1630, 1720]   // 8000 ft (30°C & 40°C [e])
+      ]
+    },
+    takeoffObstacle: {
+      pa:   [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000],
+      temp: [0, 10, 20, 30, 40],
+      data: [
+        [1220, 1305, 1395, 1490, 1590],  // S.L.
+        [1335, 1430, 1530, 1635, 1745],  // 1000 ft
+        [1465, 1565, 1680, 1800, 1925],  // 2000 ft
+        [1605, 1725, 1850, 1985, 2130],  // 3000 ft
+        [1770, 1905, 2050, 2200, 2370],  // 4000 ft
+        [1965, 2115, 2280, 2460, 2655],  // 5000 ft
+        [2185, 2360, 2555, 2765, 3005],  // 6000 ft
+        [2450, 2655, 2885, 3145, 3355],  // 7000 ft (40°C [e])
+        [2765, 3015, 3300, 3525, 3705]   // 8000 ft (30°C & 40°C [e])
+      ]
+    },
+    // Figure 5-5 — Rate of Climb, Maximum
+    // Flaps Up, 2400 RPM, Full Throttle, 2950 lbs
+    // Temp columns: -20°C, 0°C, 20°C, 40°C (per POH)
+    // 40°C values at 10000 & 12000 ft are [e]
+    climbROC: {
+      pa:   [0, 2000, 4000, 6000, 8000, 10000, 12000],
+      temp: [-20, 0, 20, 40],
+      data: [
+        [1155, 1070, 990, 910],
+        [1020, 945,  865, 790],
+        [890,  815,  740, 670],
+        [760,  690,  620, 550],
+        [635,  565,  500, 430],
+        [510,  440,  375, 310],  // 40°C [e]
+        [385,  320,  255, 190]   // 40°C [e]
+      ]
+    },
+    // Figure 5-10 — Landing Distance, Short Field
+    // Flaps 40°, Power Off, Maximum Braking
+    // Paved, Level, Dry Runway, Zero Wind, 2950 lbs
+    landingRoll: {
+      pa:   [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000],
+      temp: [0, 10, 20, 30, 40],
+      data: [
+        [560, 580, 600, 620, 640],   // S.L.
+        [580, 600, 620, 645, 665],   // 1000 ft
+        [600, 625, 645, 670, 690],   // 2000 ft
+        [625, 645, 670, 695, 715],   // 3000 ft
+        [650, 670, 695, 720, 740],   // 4000 ft
+        [670, 695, 720, 745, 770],   // 5000 ft
+        [700, 725, 750, 775, 800],   // 6000 ft
+        [725, 750, 780, 805, 830],   // 7000 ft
+        [755, 780, 810, 835, 865]    // 8000 ft
+      ]
+    },
+    landingObstacle: {
+      pa:   [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000],
+      temp: [0, 10, 20, 30, 40],
+      data: [
+        [1300, 1335, 1365, 1400, 1435],  // S.L.
+        [1335, 1365, 1400, 1440, 1475],  // 1000 ft
+        [1370, 1405, 1440, 1480, 1515],  // 2000 ft
+        [1410, 1445, 1485, 1525, 1560],  // 3000 ft
+        [1450, 1485, 1525, 1565, 1600],  // 4000 ft
+        [1485, 1525, 1565, 1610, 1650],  // 5000 ft
+        [1530, 1575, 1615, 1660, 1700],  // 6000 ft
+        [1575, 1615, 1665, 1710, 1750],  // 7000 ft
+        [1625, 1665, 1715, 1760, 1805]   // 8000 ft
+      ]
+    }
+  };
+
+  // ── INTERPOLATION ──────────────────────────────────────────────
+  function lowerIndex(arr, val) {
+    // Returns index i where arr[i] <= val, clamped to [0, arr.length-2]
+    for (let i = arr.length - 2; i >= 0; i--) {
+      if (val >= arr[i]) return i;
+    }
+    return 0;
+  }
+
+  function bilinearInterp(table, pa, temp) {
+    const pas   = table.pa;
+    const temps = table.temp;
+    const data  = table.data;
+
+    const cp = Math.max(pas[0],   Math.min(pa,   pas[pas.length - 1]));
+    const ct = Math.max(temps[0], Math.min(temp, temps[temps.length - 1]));
+
+    const ai = lowerIndex(pas,   cp);
+    const ti = lowerIndex(temps, ct);
+
+    const tPA   = (pas[ai + 1]   - pas[ai])   === 0 ? 0 : (cp - pas[ai])   / (pas[ai + 1]   - pas[ai]);
+    const tTemp = (temps[ti + 1] - temps[ti]) === 0 ? 0 : (ct - temps[ti]) / (temps[ti + 1] - temps[ti]);
+
+    const q11 = data[ai][ti];
+    const q12 = data[ai][ti + 1];
+    const q21 = data[ai + 1][ti];
+    const q22 = data[ai + 1][ti + 1];
+
+    return q11 * (1 - tPA) * (1 - tTemp)
+         + q12 * (1 - tPA) * tTemp
+         + q21 * tPA       * (1 - tTemp)
+         + q22 * tPA       * tTemp;
+  }
+
+  // ── CALCULATIONS ───────────────────────────────────────────────
+  function calcPA() {
+    return state.elevation + (29.92 - state.altimeter) * 1000;
+  }
+
+  function calcDA(pa) {
+    const isa = 15 - (2 * pa / 1000);
+    return pa + 120 * (state.oat_c - isa);
+  }
+
+  function calcHeadwind() {
+    if (state.headwindOverride) return state.headwindManual;
+    if (state.windSpeed === 0)  return 0;
+    const angle = ((state.windDir - state.runwayHeading) + 360) % 360;
+    return Math.round(state.windSpeed * Math.cos(angle * Math.PI / 180));
+  }
+
+  function windFactorTO(hw) {
+    if (hw > 0) return Math.max(0.05, 1 - (hw / 9)  * 0.10);
+    if (hw < 0) return 1 + (Math.abs(hw) / 2) * 0.10;
+    return 1;
+  }
+
+  function windFactorLD(hw) {
+    if (hw > 0) return Math.max(0.05, 1 - (hw / 9) * 0.10);
+    if (hw < 0) return 1 + (Math.abs(hw) / 2) * 0.10;
+    return 1;
+  }
+
+  function runCalcs() {
+    const pa = calcPA();
+    const da = calcDA(pa);
+    const hw = calcHeadwind();
+    const w  = state.weight;
+    const t  = state.oat_c;
+
+    const wfTO = windFactorTO(hw);
+    const wfLD = windFactorLD(hw);
+
+    const toRoll = Math.round(bilinearInterp(TABLES.takeoffRoll,     pa, t) * wfTO * Math.pow(w / 2950, 2.3));
+    const toObst = Math.round(bilinearInterp(TABLES.takeoffObstacle, pa, t) * wfTO * Math.pow(w / 2950, 2.0));
+    const roc    = Math.round(bilinearInterp(TABLES.climbROC,        pa, t) + (2950 - w) * 0.25);
+    const ldRoll = Math.round(bilinearInterp(TABLES.landingRoll,     pa, t) * wfLD * (w / 2950));
+    const ldObst = Math.round(bilinearInterp(TABLES.landingObstacle, pa, t) * wfLD * (w / 2950));
+
+    return { pa, da, hw, toRoll, toObst, roc, ldRoll, ldObst };
+  }
+
+  // ── DOM REFS ───────────────────────────────────────────────────
+  const el = id => document.getElementById(id);
+
+  const dom = {
+    icao:        el('icao'),
+    autofill:    el('autofill'),
+    status:      el('status'),
+    elevation:   el('elevation'),
+    altimeter:   el('altimeter'),
+    oat:         el('oat'),
+    tempToggle:  el('tempToggle'),
+    windDir:     el('windDir'),
+    windSpeed:   el('windSpeed'),
+    runway:      el('runway'),
+    hwDisplay:   el('hwDisplay'),
+    hwOverride:  el('hwOverride'),
+    hwManualRow: el('hwManualRow'),
+    hwManual:    el('hwManual'),
+    weight:      el('weight'),
+    rPA:         el('rPA'),
+    rDA:         el('rDA'),
+    rToRoll:     el('rToRoll'),
+    rToObst:     el('rToObst'),
+    rROC:        el('rROC'),
+    rLdRoll:     el('rLdRoll'),
+    rLdObst:     el('rLdObst')
+  };
+
+  // ── LOCALSTORAGE ───────────────────────────────────────────────
+  const STORAGE_KEY = 'c182perf_v1';
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        icao:             state.icao,
+        elevation:        state.elevation,
+        altimeter:        state.altimeter,
+        oat_c:            state.oat_c,
+        tempUnit:         state.tempUnit,
+        windDir:          state.windDir,
+        windSpeed:        state.windSpeed,
+        runwayHeading:    state.runwayHeading,
+        headwindOverride: state.headwindOverride,
+        headwindManual:   state.headwindManual,
+        weight:           state.weight
+      }));
+    } catch (e) {}
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) Object.assign(state, JSON.parse(raw));
+    } catch (e) {}
+  }
+
+  // ── UNIT HELPERS ───────────────────────────────────────────────
+  function cToF(c) { return +(c * 9 / 5 + 32).toFixed(1); }
+  function fToC(f) { return +((f - 32) * 5 / 9).toFixed(2); }
+
+  // ── PARSE HELPERS ──────────────────────────────────────────────
+  function numF(val, def) { const v = parseFloat(val); return isNaN(v) ? def : v; }
+  function numI(val, def) { const v = parseInt(val, 10); return isNaN(v) ? def : v; }
+
+  // ── STATUS ─────────────────────────────────────────────────────
+  function setStatus(type, msg) {
+    dom.status.textContent = msg;
+    dom.status.className   = 'status ' + (type || '');
+  }
+
+  // ── DISPLAY ────────────────────────────────────────────────────
+  function fmt(n) { return Math.round(n).toLocaleString(); }
+
+  function distColor(v)  { return v < 2000 ? 'green' : v <= 3000 ? 'yellow' : 'red'; }
+  function rocColor(v)   { return v > 600  ? 'green' : v >= 300  ? 'yellow' : 'red'; }
+
+  function displayResults(r) {
+    dom.rPA.textContent  = fmt(r.pa);
+    dom.rDA.textContent  = fmt(r.da);
+    dom.rPA.className    = 'result-value';
+    dom.rDA.className    = 'result-value';
+
+    const distMap = {
+      rToRoll: r.toRoll,
+      rToObst: r.toObst,
+      rLdRoll: r.ldRoll,
+      rLdObst: r.ldObst
+    };
+    for (const [key, val] of Object.entries(distMap)) {
+      dom[key].textContent = fmt(val);
+      dom[key].className   = 'result-value ' + distColor(val);
+    }
+
+    dom.rROC.textContent = fmt(r.roc);
+    dom.rROC.className   = 'result-value ' + rocColor(r.roc);
+
+    // Headwind display
+    if (!state.headwindOverride) {
+      const hw = r.hw;
+      if (hw > 0) {
+        dom.hwDisplay.textContent = hw + ' kts headwind';
+        dom.hwDisplay.className   = 'hw-display hw-head';
+      } else if (hw < 0) {
+        dom.hwDisplay.textContent = Math.abs(hw) + ' kts tailwind';
+        dom.hwDisplay.className   = 'hw-display hw-tail';
+      } else {
+        dom.hwDisplay.textContent = 'Calm / crosswind';
+        dom.hwDisplay.className   = 'hw-display hw-calm';
+      }
+    }
+  }
+
+  function syncInputsFromState() {
+    dom.icao.value       = state.icao;
+    dom.elevation.value  = state.elevation;
+    dom.altimeter.value  = state.altimeter.toFixed(2);
+
+    const dispTemp = state.tempUnit === 'C'
+      ? state.oat_c.toFixed(1)
+      : cToF(state.oat_c).toFixed(1);
+    dom.oat.value = dispTemp;
+    dom.tempToggle.textContent = state.tempUnit === 'C' ? '°C' : '°F';
+
+    dom.windDir.value    = state.windDir;
+    dom.windSpeed.value  = state.windSpeed;
+    dom.runway.value     = state.runwayHeading;
+
+    dom.hwOverride.checked = state.headwindOverride;
+    dom.hwManual.value     = state.headwindManual;
+    dom.hwManual.disabled  = !state.headwindOverride;
+    if (state.headwindOverride) {
+      dom.hwManualRow.classList.add('visible');
+    }
+
+    dom.weight.value = state.weight;
+  }
+
+  function recalculate() {
+    const r = runCalcs();
+    displayResults(r);
+  }
+
+  // ── EVENTS ─────────────────────────────────────────────────────
+  function bindEvents() {
+    dom.icao.addEventListener('input', () => {
+      state.icao = dom.icao.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      dom.icao.value = state.icao;
+      saveState();
+    });
+
+    dom.autofill.addEventListener('click', () => fetchWeather(state.icao));
+
+    dom.elevation.addEventListener('input', () => {
+      state.elevation = numF(dom.elevation.value, 0);
+      saveState(); recalculate();
+    });
+
+    dom.altimeter.addEventListener('input', () => {
+      state.altimeter = numF(dom.altimeter.value, 29.92);
+      saveState(); recalculate();
+    });
+
+    dom.oat.addEventListener('input', () => {
+      const v = numF(dom.oat.value, state.tempUnit === 'C' ? 15 : 59);
+      state.oat_c = state.tempUnit === 'C' ? v : fToC(v);
+      saveState(); recalculate();
+    });
+
+    dom.tempToggle.addEventListener('click', () => {
+      const cur = numF(dom.oat.value, state.tempUnit === 'C' ? 15 : 59);
+      if (state.tempUnit === 'C') {
+        state.oat_c  = cur;
+        state.tempUnit = 'F';
+        dom.oat.value  = cToF(cur).toFixed(1);
+        dom.tempToggle.textContent = '°F';
+      } else {
+        state.oat_c  = fToC(cur);
+        state.tempUnit = 'C';
+        dom.oat.value  = state.oat_c.toFixed(1);
+        dom.tempToggle.textContent = '°C';
+      }
+      saveState();
+    });
+
+    dom.windDir.addEventListener('input', () => {
+      state.windDir = numI(dom.windDir.value, 0);
+      saveState(); recalculate();
+    });
+
+    dom.windSpeed.addEventListener('input', () => {
+      state.windSpeed = numF(dom.windSpeed.value, 0);
+      saveState(); recalculate();
+    });
+
+    dom.runway.addEventListener('input', () => {
+      state.runwayHeading = numI(dom.runway.value, 0);
+      saveState(); recalculate();
+    });
+
+    dom.hwOverride.addEventListener('change', () => {
+      state.headwindOverride = dom.hwOverride.checked;
+      dom.hwManual.disabled  = !state.headwindOverride;
+      if (state.headwindOverride) {
+        dom.hwManualRow.classList.add('visible');
+        dom.hwDisplay.textContent = 'Manual override';
+        dom.hwDisplay.className   = 'hw-display hw-calm';
+      } else {
+        dom.hwManualRow.classList.remove('visible');
+      }
+      saveState(); recalculate();
+    });
+
+    dom.hwManual.addEventListener('input', () => {
+      state.headwindManual = numF(dom.hwManual.value, 0);
+      saveState(); recalculate();
+    });
+
+    dom.weight.addEventListener('input', () => {
+      let w = numF(dom.weight.value, 2950);
+      w = Math.max(1700, Math.min(2950, w));
+      state.weight = w;
+      saveState(); recalculate();
+    });
+  }
+
+  // ── WEATHER API ────────────────────────────────────────────────
+  async function fetchWeather(icao) {
+    const id = (icao || '').trim().toUpperCase();
+    if (id.length < 3) {
+      setStatus('error', 'Enter a 3-4 letter ICAO code (e.g. KBVN)');
+      return;
+    }
+
+    setStatus('loading', 'Fetching weather…');
+    dom.autofill.disabled     = true;
+    dom.autofill.textContent  = '⋯';
+
+    try {
+      const [metarRes, aptRes] = await Promise.all([
+        fetch('https://aviationweather.gov/api/data/metar?ids=' + id + '&format=json&hours=2'),
+        fetch('https://aviationweather.gov/api/data/airport?ids=' + id + '&format=json')
+      ]);
+
+      let metarData = [], aptData = [];
+      if (metarRes.ok) metarData = await metarRes.json();
+      if (aptRes.ok)   aptData   = await aptRes.json();
+
+      const m = Array.isArray(metarData) && metarData.length ? metarData[0] : null;
+      const a = Array.isArray(aptData)   && aptData.length   ? aptData[0]   : null;
+
+      if (!m && !a) {
+        setStatus('error', 'No data found for ' + id);
+        return;
+      }
+
+      if (m) {
+        if (m.temp  != null) state.oat_c    = parseFloat(m.temp);
+        if (m.altim != null) state.altimeter = parseFloat(m.altim);
+        if (m.wdir  != null) state.windDir   = parseInt(m.wdir, 10) || 0;
+        if (m.wspd  != null) state.windSpeed = parseFloat(m.wspd) || 0;
+        // Use METAR elev (meters) only if airport endpoint didn't give us better data
+        if (m.elev  != null && !a) {
+          state.elevation = Math.round(parseFloat(m.elev) * 3.28084);
+        }
+      }
+
+      if (a) {
+        if (a.elev != null) state.elevation = Math.round(parseFloat(a.elev));
+      }
+
+      state.icao = id;
+      const label = (a && a.name) ? a.name : id;
+      setStatus('success', 'Loaded: ' + label);
+
+      syncInputsFromState();
+      recalculate();
+      saveState();
+
+    } catch (err) {
+      setStatus('error', 'Offline — enter conditions manually');
+    } finally {
+      dom.autofill.disabled    = false;
+      dom.autofill.textContent = 'Auto-Fill';
+    }
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────
+  loadState();
+  syncInputsFromState();
+  bindEvents();
+  recalculate();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
