@@ -980,17 +980,18 @@
 
       if (m) {
         if (m.temp  != null) state.oat_c    = parseFloat(m.temp);
-        if (m.altim != null) state.altimeter = parseFloat(m.altim);
+        if (m.altim != null) state.altimeter = parseFloat((parseFloat(m.altim) / 33.8639).toFixed(2));
         if (m.wdir  != null) state.windDir   = parseInt(m.wdir, 10) || 0;
         if (m.wspd  != null) state.windSpeed = parseFloat(m.wspd) || 0;
-        // Use METAR elev (meters) only if airport endpoint didn't give us better data
+        // METAR elev is in meters
         if (m.elev  != null && !a) {
           state.elevation = Math.round(parseFloat(m.elev) * 3.28084);
         }
       }
 
       if (a) {
-        if (a.elev != null) state.elevation = Math.round(parseFloat(a.elev));
+        // Airport elev is also in meters
+        if (a.elev != null) state.elevation = Math.round(parseFloat(a.elev) * 3.28084);
       }
 
       state.icao = id;
